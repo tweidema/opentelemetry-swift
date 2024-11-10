@@ -18,7 +18,6 @@ let package = Package(
         .library(name: "SwiftMetricsShim", targets: ["SwiftMetricsShim"]),
         .library(name: "StdoutExporter", targets: ["StdoutExporter"]),
         .library(name: "PrometheusExporter", targets: ["PrometheusExporter"]),
-        .library(name: "OpenTelemetryProtocolExporter", targets: ["OpenTelemetryProtocolExporterGrpc"]),
         .library(name: "OpenTelemetryProtocolExporterHTTP", targets: ["OpenTelemetryProtocolExporterHttp"]),
         .library(name: "PersistenceExporter", targets: ["PersistenceExporter"]),
         .library(name: "InMemoryExporter", targets: ["InMemoryExporter"]),
@@ -28,7 +27,6 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-nio.git", from: "2.0.0"),
-        .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.20.2"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.4.4"),
         .package(url: "https://github.com/apple/swift-metrics.git", from: "2.1.1"),
@@ -65,11 +63,6 @@ let package = Package(
                 dependencies: ["OpenTelemetrySdk",
                                "OpenTelemetryProtocolExporterCommon"],
                 path: "Sources/Exporters/OpenTelemetryProtocolHttp"),
-        .target(name: "OpenTelemetryProtocolExporterGrpc",
-                dependencies: ["OpenTelemetrySdk",
-                               "OpenTelemetryProtocolExporterCommon",
-                               .product(name: "GRPC", package: "grpc-swift")],
-                path: "Sources/Exporters/OpenTelemetryProtocolGrpc"),
         .target(name: "StdoutExporter",
                 dependencies: ["OpenTelemetrySdk"],
                 path: "Sources/Exporters/Stdout"),
@@ -97,13 +90,6 @@ let package = Package(
         .testTarget(name: "PrometheusExporterTests",
                     dependencies: ["PrometheusExporter"],
                     path: "Tests/ExportersTests/Prometheus"),
-        .testTarget(name: "OpenTelemetryProtocolExporterTests",
-                    dependencies: ["OpenTelemetryProtocolExporterGrpc",
-                                   "OpenTelemetryProtocolExporterHttp",
-                                   .product(name: "NIO", package: "swift-nio"),
-                                   .product(name: "NIOHTTP1", package: "swift-nio"),
-                                   .product(name: "NIOTestUtils", package: "swift-nio")],
-                    path: "Tests/ExportersTests/OpenTelemetryProtocol"),
         .testTarget(name: "InMemoryExporterTests",
                     dependencies: ["InMemoryExporter"],
                     path: "Tests/ExportersTests/InMemory"),
@@ -115,10 +101,6 @@ let package = Package(
             dependencies: ["OpenTelemetryApi"],
             path: "Examples/Logging Tracer"
         ),
-        .executableTarget(
-            name: "LogsSample",
-            dependencies: ["OpenTelemetrySdk", "OpenTelemetryProtocolExporterGrpc", .product(name: "GRPC", package: "grpc-swift")],
-            path: "Examples/Logs Sample"),
         .executableTarget(
             name: "ConcurrencyContext",
             dependencies: ["OpenTelemetrySdk", "OpenTelemetryConcurrency", "StdoutExporter"],
@@ -232,12 +214,6 @@ extension Package {
                 .testTarget(name: "ZipkinExporterTests",
                             dependencies: ["ZipkinExporter"],
                             path: "Tests/ExportersTests/Zipkin"),
-                .executableTarget(
-                    name: "OTLPExporter",
-                    dependencies: ["OpenTelemetrySdk", "OpenTelemetryProtocolExporterGrpc", "StdoutExporter", "ZipkinExporter", "ResourceExtension", "SignPostIntegration"],
-                    path: "Examples/OTLP Exporter",
-                    exclude: ["README.md"]
-                ),
                 .executableTarget(
                     name: "OTLPHTTPExporter",
                     dependencies: ["OpenTelemetrySdk", "OpenTelemetryProtocolExporterHttp", "StdoutExporter", "ZipkinExporter", "ResourceExtension", "SignPostIntegration"],
